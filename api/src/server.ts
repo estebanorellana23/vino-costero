@@ -78,7 +78,10 @@ const PORT = Number(process.env.PORT) || 4000;
     process.once('SIGTERM', shutdown);
     process.once('SIGINT', shutdown);
   })
-  .catch(() => {
-    console.error('No se pudo iniciar: verifica configuración y esquema instalado');
+  .catch((error: any) => {
+    // Only the error code is logged (for example ECONNREFUSED or ER_ACCESS_DENIED_ERROR): never messages,
+    // hosts, users or values, so the log can be read without exposing configuration.
+    const code = typeof error?.code === 'string' ? error.code : typeof error?.name === 'string' ? error.name : 'ERROR';
+    console.error(`No se pudo iniciar: verifica configuración y esquema instalado (${code})`);
     process.exit(1);
   });
