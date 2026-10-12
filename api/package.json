@@ -10,7 +10,8 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "tsx --test test/*.test.ts",
-    "accounts": "node dist/accountMaintenance.js"
+    "accounts": "node dist/accountMaintenance.js",
+    "db:install": "node dist/installSchema.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -27,5 +28,8 @@
     "@types/node": "^22.10.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

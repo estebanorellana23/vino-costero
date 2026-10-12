@@ -21,9 +21,11 @@ import campoRoutes from './routes/campo.routes.js';
 import { schemaCheck } from './schemaCheck.js';
 import usuariosRoutes from './routes/usuarios.routes.js';
 import iotRoutes from './routes/iot.routes.js';
+import { trustProxyHops } from './deployConfig.js';
 
 const app = express();
 app.disable('x-powered-by');
+app.set('trust proxy', trustProxyHops(process.env.TRUST_PROXY));
 app.use((_req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Cache-Control', 'no-store');
