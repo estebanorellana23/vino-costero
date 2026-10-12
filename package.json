@@ -1,0 +1,16 @@
+{
+  "name": "vino-costero",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Prototipo — Sistema de Control de Producción Vitivinícola (Análisis de Sistemas II)",
+  "scripts": {
+    "install:all": "npm install --prefix api && npm install --prefix web",
+    "dev": "concurrently -n API,WEB -c magenta,cyan \"npm run dev --prefix api\" \"npm run dev --prefix web\"",
+    "build": "npm run build --prefix api && npm run build --prefix web",
+    "typecheck": "npm run typecheck --prefix api && npm run typecheck --prefix web",
+    "test": "npm test --prefix api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
