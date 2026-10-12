@@ -2,7 +2,8 @@ import axios from 'axios';
 
 // Cliente HTTP apuntando a la API de Node/Express.
 export const api = axios.create({
-  baseURL: '/api',
+  // Local: '/api' (proxy de Vite). En línea: VITE_API_URL=https://servidor/api al compilar.
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   timeout: 15000,
 });
 
