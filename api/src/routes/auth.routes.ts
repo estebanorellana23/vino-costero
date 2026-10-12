@@ -19,8 +19,9 @@ router.post('/login', asyncHandler(async (req, res) => {
     res.status(400).json({ error: 'Usuario y contraseña son obligatorios y deben ser válidos' }); return;
   }
   const [rows]: any = await pool.query(
-    'SELECT * FROM usuario WHERE usuario = ? AND estado = "activo"',
-    [usuario]
+    // Single quotes via a parameter: some hosts run MySQL with ANSI_QUOTES, where "activo" means a column.
+    'SELECT * FROM usuario WHERE usuario = ? AND estado = ?',
+    [usuario, 'activo']
   );
   if (rows.length === 0) {
     res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
