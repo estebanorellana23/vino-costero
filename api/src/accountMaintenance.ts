@@ -7,9 +7,13 @@ async function main() {
   const operation=process.env.ACCOUNT_OPERATION;
   const username=process.env.ACCOUNT_USERNAME;
   const password=process.env.ACCOUNT_NEW_PASSWORD;
-  if(!['bootstrap','recover-admin'].includes(operation || '') || process.env.ACCOUNT_CONFIRM!==operation || !validUsername(username) || !validNewPassword(password)) {
-    throw new Error('Se requiere operación y confirmación explícitas, usuario válido y contraseña nueva de 16–72 bytes UTF-8');
-  }
+  // Reasons are fixed texts: they say which input failed, never what it contained.
+  const problems:string[]=[];
+  if(!['bootstrap','recover-admin'].includes(operation || ''))problems.push('operación inválida');
+  if(process.env.ACCOUNT_CONFIRM!==operation)problems.push('la confirmación debe ser igual a la operación');
+  if(!validUsername(username))problems.push('usuario inválido (minúsculas, números, punto, guion o guion bajo; 3 a 50 caracteres)');
+  if(!validNewPassword(password))problems.push('contraseña inválida (debe tener entre 16 y 72 bytes UTF-8)');
+  if(problems.length)throw new Error('Rechazado: '+problems.join('; '));
   const hash=await bcrypt.hash(password,12);
   const conn=await pool.getConnection();
   let locked=false;
@@ -40,4 +44,8 @@ async function main() {
   }
 }
 
-main().catch(()=>{console.error('Operación rechazada o fallida. Revisa los requisitos y el esquema sin compartir secretos.');process.exitCode=1;}).finally(()=>pool.end());
+const KNOWN=/^(Rechazado: |Bootstrap solo|La recuperación requiere|Otra operación)/;
+main().catch((error:any)=>{
+  console.error(error instanceof Error && KNOWN.test(error.message) ? error.message : `Operación fallida (${error?.code ?? 'ERROR'}). Revisa la conexión y el esquema.`);
+  process.exitCode=1;
+}).finally(()=>pool.end());
