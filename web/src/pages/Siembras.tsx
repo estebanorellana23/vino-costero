@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
+import { PageNotice } from '../components/PageNotice';
 import { motion, FadeIn, Reveal, MotionButton } from '../components/Motion';
 import { ReqBadge } from '../components/ReqBadge';
 import { Termino } from '../components/Termino';
@@ -92,6 +93,8 @@ export default function Siembras() {
   const [variedades, setVariedades] = useState<Variedad[]>([]);
   const [form, setForm] = useState<any>({ id_parcela: '', id_variedad: '', fecha_siembra: hoy(), cantidad: '', responsable: '' });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(true);
   const [nuevoBrix, setNuevoBrix] = useState<Record<number, string>>({});
   const [cosechando, setCosechando] = useState<number | null>(null);
   const [cosechaForm, setCosechaForm] = useState<any>({ kilogramos: '', clasificacion: 'Primera' });
@@ -99,12 +102,16 @@ export default function Siembras() {
   const editable = puedeEditarCampo(rol);
 
   const cargar = async () => {
+    setLoading(true);
+    setError('');
+    try {
     const [s, p, v] = await Promise.all([
       api.get('/siembras'), api.get('/parcelas'), api.get('/variedades'),
     ]);
     setSiembras(s.data);
     setParcelas(p.data);
     setVariedades(v.data);
+    } catch { setError('No se pudieron cargar los datos. Comprueba la conexión y pulsa Actualizar datos.'); } finally { setLoading(false); }
   };
 
   useEffect(() => { cargar(); }, []);
@@ -114,9 +121,11 @@ export default function Siembras() {
   const guardarSiembra = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     try {
       await api.post('/siembras', form);
       setForm({ id_parcela: '', id_variedad: '', fecha_siembra: hoy(), cantidad: '', responsable: '' });
+      setSuccess('Siembra registrada.');
       cargar();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Error al registrar la siembra');
@@ -126,16 +135,19 @@ export default function Siembras() {
   const medir = async (s: Siembra) => {
     const brix = nuevoBrix[s.id_siembra];
     if (!brix) return;
+    setSuccess('');
     try {
       await api.post('/mediciones', { id_parcela: s.id_parcela, id_siembra: s.id_siembra, fecha: hoy(), brix });
       setNuevoBrix({ ...nuevoBrix, [s.id_siembra]: '' });
+      setSuccess('Medición guardada.');
       cargar();
     } catch (err: any) {
-      alert(err.response?.data?.error || 'No se pudo guardar la medición');
+      setError(err.response?.data?.error || 'No se pudo guardar la medición');
     }
   };
 
   const registrarCosecha = async (s: Siembra) => {
+    setSuccess('');
     try {
       await api.post('/cosecha', {
         id_parcela: s.id_parcela,
@@ -148,9 +160,10 @@ export default function Siembras() {
       });
       setCosechando(null);
       setCosechaForm({ kilogramos: '', clasificacion: 'Primera' });
+      setSuccess('Cosecha registrada.');
       cargar();
     } catch (err: any) {
-      alert(err.response?.data?.error || 'No se pudo registrar la cosecha');
+      setError(err.response?.data?.error || 'No se pudo registrar la cosecha');
     }
   };
 
@@ -171,50 +184,52 @@ export default function Siembras() {
           {!editable && <div className="modo-consulta">Modo consulta · solo lectura</div>}
         </header>
       </FadeIn>
+      <PageNotice error={error} onRetry={cargar} />
+      {success && <p className="operation-success" role="status">{success}</p>}
+      {loading && <p className="loading-note" role="status">Cargando registros…</p>}
 
       {editable && (
       <Reveal>
         <div className="card suave">
-          <h3>
-            Registrar siembra
+          <h3 id="registro-siembra">Registrar siembra
             <span style={{ marginLeft: 10 }}><ReqBadge codigo="REQ_C_05" /></span>
           </h3>
           <form onSubmit={guardarSiembra}>
             <div className="row">
               <div>
-                <label>Parcela *</label>
-                <select value={form.id_parcela} onChange={(e) => cambiar('id_parcela', e.target.value)}>
+                <label>Parcela *
+                <select required value={form.id_parcela} onChange={(e) => cambiar('id_parcela', e.target.value)}>
                   <option value="">— Elegí una —</option>
                   {parcelas.map((p) => (
                     <option key={p.id_parcela} value={p.id_parcela}>{p.codigo} · {p.nombre}</option>
                   ))}
-                </select>
+                </select></label>
               </div>
               <div>
-                <label>Variedad * <ReqBadge codigo="REQ_C_06" /></label>
-                <select value={form.id_variedad} onChange={(e) => cambiar('id_variedad', e.target.value)}>
+                <label>Variedad * <ReqBadge codigo="REQ_C_06" />
+                <select required value={form.id_variedad} onChange={(e) => cambiar('id_variedad', e.target.value)}>
                   <option value="">— Elegí una —</option>
                   {variedades.map((v) => (
                     <option key={v.id_variedad} value={v.id_variedad}>{v.nombre}</option>
                   ))}
-                </select>
+                </select></label>
               </div>
               <div>
-                <label>Fecha de siembra *</label>
-                <input type="date" value={form.fecha_siembra} onChange={(e) => cambiar('fecha_siembra', e.target.value)} />
+                <label>Fecha de siembra *
+                <input required type="date" value={form.fecha_siembra} onChange={(e) => cambiar('fecha_siembra', e.target.value)} /></label>
               </div>
             </div>
             <div className="row">
               <div>
-                <label>Cantidad (plantas)</label>
-                <input type="number" value={form.cantidad} onChange={(e) => cambiar('cantidad', e.target.value)} placeholder="500" />
+                <label>Cantidad (plantas)
+                <input type="number" value={form.cantidad} onChange={(e) => cambiar('cantidad', e.target.value)} placeholder="500" /></label>
               </div>
               <div>
-                <label>Responsable</label>
-                <input value={form.responsable} onChange={(e) => cambiar('responsable', e.target.value)} placeholder="Ing. Agrónomo" />
+                <label>Responsable
+                <input value={form.responsable} onChange={(e) => cambiar('responsable', e.target.value)} placeholder="Ing. Agrónomo" /></label>
               </div>
             </div>
-            {error && <div className="error">{error}</div>}
+
             <div style={{ marginTop: 22 }}>
               <MotionButton className="btn primario" type="submit">Registrar siembra</MotionButton>
             </div>
@@ -223,6 +238,8 @@ export default function Siembras() {
       </Reveal>
       )}
 
+      <h2 className="section-title" id="ciclos-cultivo">Ciclos de cultivo</h2>
+      {siembras.length === 0 && !error && !loading && <p className="empty-state">No hay siembras registradas. {editable ? 'Elige una parcela y una variedad para iniciar un ciclo.' : 'Los ciclos aparecerán cuando el equipo de Campo los registre.'}</p>}
       {siembras.map((s, i) => {
         const objetivo = s.azucar_objetivo;
         const ultimo = s.ultimo_brix;
@@ -297,12 +314,12 @@ export default function Siembras() {
               {/* Cargar medición (si sigue activa y el rol puede editar) */}
               {!cerrada && editable && (
                 <div className="medir">
-                  <label>Nueva medición <ReqBadge codigo="REQ_C_11" /></label>
+                  <label>Nueva medición <ReqBadge codigo="REQ_C_11" />
                   <input
                     type="number" step="0.1" placeholder="°Bx"
                     value={nuevoBrix[s.id_siembra] || ''}
                     onChange={(e) => setNuevoBrix({ ...nuevoBrix, [s.id_siembra]: e.target.value })}
-                  />
+                  /></label>
                   <MotionButton className="btn secundario" type="button" onClick={() => medir(s)}>
                     Guardar medición
                   </MotionButton>
@@ -321,19 +338,19 @@ export default function Siembras() {
                     <div>
                       <div className="row">
                         <div>
-                          <label>Kilogramos</label>
+                          <label>Kilogramos
                           <input type="number" step="0.1" value={cosechaForm.kilogramos}
                             onChange={(e) => setCosechaForm({ ...cosechaForm, kilogramos: e.target.value })}
-                            placeholder="1250" />
+                            placeholder="1250" /></label>
                         </div>
                         <div>
-                          <label>Clasificación</label>
+                          <label>Clasificación
                           <select value={cosechaForm.clasificacion}
                             onChange={(e) => setCosechaForm({ ...cosechaForm, clasificacion: e.target.value })}>
                             <option value="Primera">Primera</option>
                             <option value="Segunda">Segunda</option>
                             <option value="Descarte">Descarte</option>
-                          </select>
+                          </select></label>
                         </div>
                       </div>
                       <div style={{ marginTop: 18 }}>

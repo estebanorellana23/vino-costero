@@ -379,6 +379,67 @@ tbody tr:last-child td { border-bottom: 0; }
 .login-card label { text-align: left; margin-top: 16px; }
 .login-hint { font-size: 12px; color: var(--text-2); margin-top: 22px; }
 
+/* Recorrido del vino: una escena explica cada etapa, sin reproducción automática. */
+.vineyard-login {
+  --accent: #71394f;
+  --accent-hover: #59283d;
+  background: #f1f3ed;
+  display: grid;
+  grid-template-columns: minmax(0, 680px) minmax(320px, 400px);
+  gap: clamp(28px, 5vw, 80px);
+  padding: 48px clamp(24px, 5vw, 80px);
+  justify-content: center;
+  color: #243e31;
+}
+.vineyard-journey { min-width: 0; }
+.journey-brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 18px; margin-bottom: 38px; }
+.journey-brand > span { background: #304e39; color: #fff; padding: 11px 8px; border-radius: 50%; font: 17px Georgia, serif; }
+.journey-eyebrow { text-transform: uppercase; font-size: 11px; font-weight: 650; letter-spacing: .12em; color: #536650; margin: 0 0 14px; }
+.vineyard-journey h1 { font: 500 clamp(32px, 3.7vw, 54px)/1.08 Georgia, 'Times New Roman', serif; letter-spacing: -.035em; }
+.journey-art { margin: 24px 0 0; border-radius: 22px; overflow: hidden; background: #e7eadc; }
+.journey-art svg { display: block; width: 100%; height: auto; }
+.journey-layer { opacity: 0; transform: translateY(8px); transition: opacity 240ms cubic-bezier(.23,1,.32,1), transform 240ms cubic-bezier(.23,1,.32,1); }
+.journey-layer.is-visible { opacity: 1; transform: translateY(0); }
+.journey-steps { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; margin-top: 16px; }
+.journey-steps button { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 46px; border: 1px solid #a9b4a4; border-radius: 10px; background: transparent; color: #304e39; cursor: pointer; font-size: 13px; font-weight: 600; padding: 7px; }
+.journey-steps button[aria-pressed="true"] { color: white; background: #304e39; border-color: #304e39; }
+.journey-step-number { opacity: .75; font-size: 11px; }
+.journey-description { min-height: 132px; padding-top: 22px; }
+.journey-description h2 { font-size: 20px; line-height: 1.3; }
+.journey-description p { color: #536650; font-size: 15px; line-height: 1.5; margin: 8px 0 12px; max-width: 490px; }
+.journey-description > span { font-size: 12px; font-weight: 600; color: #71394f; }
+.vineyard-login .login-card { text-align: left; padding: 36px 30px; border-color: #d5dccf; box-shadow: 0 16px 50px #243e3108; }
+.vineyard-login .login-card h2 { font-size: 26px; line-height: 1.15; margin-bottom: 12px; }
+.vineyard-login .login-card .sub { font-size: 15px; line-height: 1.5; margin-bottom: 24px; }
+.vineyard-login .login-card input:focus { box-shadow: 0 0 0 3px #71394f22; }
+.vineyard-login .login-hint { line-height: 1.6; }
+.journey-instant .journey-layer { transition: none; }
+.module-navigation { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 22px; background: var(--bg-2); border-bottom: 1px solid var(--border); }
+.module-navigation a { padding: 10px 13px; border-radius: 9px; color: var(--text); font-size: 13px; line-height: 1.4; }
+.module-navigation a.active { background: #71394f; color: #fff; }
+.nav .menu-btn { position: relative; width: 82px; padding-right: 48px; flex-shrink: 0; }
+.menu-btn b { position: absolute; left: 35px; top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: 500; }
+@media (hover: hover) and (pointer: fine) {
+  .journey-steps button:hover { border-color: #304e39; }
+  .module-navigation a:not(.active):hover { background: #e7e5e7; }
+}
+@media (max-width: 900px) {
+  .vineyard-login { grid-template-columns: minmax(0, 600px); padding: 28px 24px; gap: 32px; }
+  .vineyard-login .login-card { grid-row: 1; max-width: 600px; }
+  .journey-brand { margin-bottom: 24px; }
+}
+@media (max-width: 420px) {
+  .vineyard-login { padding: 20px 16px; }
+  .vineyard-login .login-card { padding: 28px 22px; }
+  .journey-steps { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .nav { gap: 12px; padding-inline: 12px; }
+  .nav .marca { font-size: 16px; }
+  .module-navigation { padding: 10px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .journey-layer { transform: none; transition: opacity 120ms linear; }
+}
+
 /* ---------- Insignias de requerimiento + tooltip ---------- */
 .req-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 18px; }
 
@@ -654,3 +715,65 @@ tbody tr:last-child td { border-bottom: 0; }
 
 .origen { display: inline-block; white-space: nowrap; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; background: #e8f3ec; color: #1f7a4d; }
 .origen.simulado { background: #fff3d6; color: #8a5a00; }
+
+/* Sistema operativo común: jerarquía, tareas visibles y formularios adaptables. */
+:root { --accent: #71394f; --accent-hover: #59283d; --bg-2: #f3f5f0; --text-2: #53615a; --border: #d3dad2; --maxw: 1120px; }
+.contenido { padding-top: 24px; min-width: 0; }
+.contenido > div, .card, .row > div, .field-form > *, .dash-grid > * { min-width: 0; }
+.hero { text-align: left; padding: 20px 0 24px; }
+.display { font-size: clamp(1.8rem, 3.2vw, 2.6rem); line-height: 1.15; }
+.hero .lead { font-size: 1.05rem; line-height: 1.5; margin-top: 10px; }
+.hero .req-row { justify-content: flex-start; margin-top: 12px; }
+.card { padding: 24px; border-radius: 16px; margin-bottom: 22px; }
+.card h2, .card h3 { line-height: 1.35; }
+.section-title { font-size: 21px; margin: 26px 0 18px; }
+[id] { scroll-margin-top: 74px; }
+.work-guide { border-left: 3px solid #738768; padding: 12px 16px; background: #f3f5f0; border-radius: 0 10px 10px 0; }
+.work-guide p { margin: 0; font-size: 14px; line-height: 1.6; }
+.work-guide strong { display: inline-block; color: #304e39; margin-right: 8px; }
+.work-guide nav { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; }
+.work-guide a { padding: 5px 0; font-size: 13px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.skip-link { position: fixed; top: 8px; left: 12px; z-index: 150; padding: 12px; background: white; color: var(--accent); transform: translateY(-180%); }
+.skip-link:focus { transform: none; }
+.row { gap: 16px; align-items: flex-start; }
+.row > div { flex: 1 1 200px; min-width: 0; }
+label { font-size: 14px; line-height: 1.5; }
+label > input, label > select { display: block; margin-top: 7px; }
+input, select { min-height: 44px; max-width: 100%; scroll-margin-top: 90px; }
+.btn { min-height: 44px; }
+.chip { min-height: 36px; }
+.medir { align-items: flex-end; gap: 14px; }
+.medir label { flex: 1 1 160px; }
+.medir label input { width: 100% !important; }
+.table-scroll, .field-table { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+.table-scroll:focus-visible, .field-table:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.table-scroll table { min-width: 480px; }
+.table-scroll th, .table-scroll td { overflow-wrap: anywhere; }
+.empty-state { border: 1px dashed var(--border); padding: 18px; color: var(--text-2); line-height: 1.6; border-radius: 12px; }
+.page-notice p { margin: 0 0 10px; }
+.page-notice small { display: block; margin-top: 8px; }
+.page-notice { margin: 0 0 22px; }
+.loading-note { color: var(--text-2); }
+.operation-success { padding: 14px 16px; border: 1px solid #a7c8ae; background: #eef7ef; color: #245431; border-radius: 10px; line-height: 1.5; }
+.drawer { overflow-y: auto; }
+.drawer-close { align-self: flex-end; margin: 0 0 14px; }
+.termino:hover .termino-tip, .termino:focus .termino-tip { display: none; }
+.termino[data-open="true"] .termino-tip { display: block; }
+.termino-tip, .reqtip { left: 0; transform: none; max-width: min(270px, 75vw); }
+.reqtip .flecha { left: 20px; }
+.reqbadge-wrap:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+@media (max-width: 600px) {
+  .contenido { padding: 18px 16px 60px; }
+  .nav { padding-inline: 16px; gap: 12px; }
+  .nav .usuario { max-width: 140px; overflow-wrap: anywhere; }
+  .module-navigation { padding: 8px 12px; gap: 3px; }
+  .module-navigation a { padding: 8px 9px; }
+  .card, .field-workspace .card { padding: 20px 16px; }
+  .row { flex-direction: column; }
+  .row > div { width: 100%; flex: 0 1 auto; }
+  .field-form { grid-template-columns: 1fr; }
+  .fenologia { flex-wrap: wrap; gap: 12px 0; }
+  .fenologia .fase { min-width: 90px; flex: 1 1 90px; }
+  .siembra-head { gap: 10px; }
+  .medir > .btn { flex: 1 1 100%; }
+}

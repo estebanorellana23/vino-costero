@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
+import { PageNotice } from '../components/PageNotice';
 import { FadeIn, Reveal, MotionButton, motion } from '../components/Motion';
 import { ReqBadge } from '../components/ReqBadge';
 import { Termino } from '../components/Termino';
@@ -36,32 +37,50 @@ export default function Gestion() {
   const [finForm, setFinForm] = useState<any>({ fecha: hoy(), concepto: '', tipo: 'Ingreso', monto: '' });
   const [campForm, setCampForm] = useState<any>({ nombre: '', canal: '', presupuesto: '', estado: 'Planificada' });
 
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(true);
+
   const rol = JSON.parse(localStorage.getItem('usuario') || '{}').rol || '';
   const editable = puedeEditarModulo(rol, 'gestion');
 
   const cargar = async () => {
+    setLoading(true);
+    setError('');
+    try {
     const [d, f, c, u] = await Promise.all([
       api.get('/gestion/dashboard'), api.get('/gestion/finanzas'),
       api.get('/gestion/campanias'), api.get('/gestion/usuarios'),
     ]);
     setDash(d.data); setFinanzas(f.data); setCampanias(c.data); setUsuarios(u.data);
+    } catch { setError('No se pudieron cargar los datos. Comprueba la conexión y pulsa Actualizar datos.'); } finally { setLoading(false); }
   };
   useEffect(() => { cargar(); }, []);
 
   const crearFinanza = async (e: React.FormEvent) => {
+    setError('');
+    setSuccess('');
+    try {
     e.preventDefault();
     if (!finForm.concepto || !finForm.monto) return;
     await api.post('/gestion/finanzas', finForm);
     setFinForm({ fecha: hoy(), concepto: '', tipo: 'Ingreso', monto: '' });
-    cargar();
+    setSuccess('Movimiento financiero registrado.');
+      cargar();
+    } catch (err: any) { setError(err.response?.data?.error || 'No se pudo confirmar la operación. Actualiza los datos antes de volver a intentarlo.'); }
   };
 
   const crearCampania = async (e: React.FormEvent) => {
+    setError('');
+    setSuccess('');
+    try {
     e.preventDefault();
     if (!campForm.nombre) return;
     await api.post('/gestion/campanias', campForm);
     setCampForm({ nombre: '', canal: '', presupuesto: '', estado: 'Planificada' });
-    cargar();
+    setSuccess('Campaña agregada.');
+      cargar();
+    } catch (err: any) { setError(err.response?.data?.error || 'No se pudo confirmar la operación. Actualiza los datos antes de volver a intentarlo.'); }
   };
 
   const valorObj = (o: Dash['objetivos'][0]) =>
@@ -80,6 +99,9 @@ export default function Gestion() {
           {!editable && <div className="modo-consulta">Modo consulta · solo lectura</div>}
         </header>
       </FadeIn>
+      <PageNotice error={error} onRetry={cargar} />
+      {success && <p className="operation-success" role="status">{success}</p>}
+      {loading && <p className="loading-note" role="status">Cargando registros…</p>}
 
       {dash && (
         <>
@@ -111,7 +133,7 @@ export default function Gestion() {
             <div className="dash-section-title">Lotes e ingresos por mes</div>
             <div className="dash-row">
               <div className="card">
-                <h3>Evolución <span style={{ marginLeft: 8 }}><ReqBadge codigo="REQ_C_26" /></span></h3>
+                <h3 id="indicadores">Evolución <span style={{ marginLeft: 8 }}><ReqBadge codigo="REQ_C_26" /></span></h3>
                 <p style={{ color: 'var(--text-2)', marginTop: -8, fontSize: 13 }}>Barras: saldo de litros por inicio del lote · línea: ingresos registrados (Q)</p>
                 <BarLine labels={dash.serie.map((s) => s.mes)} bars={dash.serie.map((s) => s.produccion)} line={dash.serie.map((s) => s.ingresos)} />
               </div>
@@ -135,7 +157,7 @@ export default function Gestion() {
               <div className="card">
                 <h3>Canales de venta</h3>
                 {dash.canales.length === 0 && <p>No hay ventas vinculadas a canales en los registros actuales.</p>}
-                <table className="canales-tbl">
+                <div className="table-scroll" role="region" aria-label="Tabla de registros" tabIndex={0}><table className="canales-tbl">
                   <thead><tr><th>Canal</th><th>Ventas</th><th>Previo</th><th>Cambio</th><th>Tendencia</th></tr></thead>
                   <tbody>
                     {dash.canales.map((c) => (
@@ -148,7 +170,7 @@ export default function Gestion() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
               <div className="card">
                 <h3>Ventas por mercado</h3>
@@ -170,8 +192,8 @@ export default function Gestion() {
       {/* Finanzas */}
       <Reveal>
         <div className="card">
-          <h3>Finanzas <span style={{ marginLeft: 8 }}><ReqBadge codigo="REQ_C_28" /></span></h3>
-          <table>
+          <h3 id="finanzas">Finanzas <span style={{ marginLeft: 8 }}><ReqBadge codigo="REQ_C_28" /></span></h3>
+          <div className="table-scroll" role="region" aria-label="Tabla de registros" tabIndex={0}><table>
             <thead><tr><th>Fecha</th><th>Concepto</th><th>Tipo</th><th style={{ textAlign: 'right' }}>Monto</th></tr></thead>
             <tbody>
               {finanzas.map((f) => (
@@ -186,20 +208,20 @@ export default function Gestion() {
               ))}
               {finanzas.length === 0 && <tr><td colSpan={4} style={{ color: 'var(--text-2)' }}>Sin movimientos aún.</td></tr>}
             </tbody>
-          </table>
+          </table></div>
           {editable && (
             <form onSubmit={crearFinanza} style={{ marginTop: 18 }}>
               <div className="row">
-                <div><label>Fecha</label><input type="date" value={finForm.fecha} onChange={(e) => setFinForm({ ...finForm, fecha: e.target.value })} /></div>
-                <div><label>Concepto *</label><input value={finForm.concepto} onChange={(e) => setFinForm({ ...finForm, concepto: e.target.value })} placeholder="Venta de lote" /></div>
+                <div><label>Fecha<input type="date" value={finForm.fecha} onChange={(e) => setFinForm({ ...finForm, fecha: e.target.value })} /></label></div>
+                <div><label>Concepto *<input required value={finForm.concepto} onChange={(e) => setFinForm({ ...finForm, concepto: e.target.value })} placeholder="Venta de lote" /></label></div>
                 <div>
-                  <label>Tipo</label>
+                  <label>Tipo
                   <select value={finForm.tipo} onChange={(e) => setFinForm({ ...finForm, tipo: e.target.value })}>
                     <option value="Ingreso">Ingreso</option>
                     <option value="Egreso">Egreso</option>
-                  </select>
+                  </select></label>
                 </div>
-                <div><label>Monto *</label><input type="number" step="0.01" value={finForm.monto} onChange={(e) => setFinForm({ ...finForm, monto: e.target.value })} placeholder="1000.00" /></div>
+                <div><label>Monto *<input required type="number" step="0.01" value={finForm.monto} onChange={(e) => setFinForm({ ...finForm, monto: e.target.value })} placeholder="1000.00" /></label></div>
               </div>
               <div style={{ marginTop: 14 }}><MotionButton className="btn secundario" type="submit">Registrar movimiento</MotionButton></div>
             </form>
@@ -210,8 +232,8 @@ export default function Gestion() {
       {/* Campañas */}
       <Reveal delay={0.05}>
         <div className="card">
-          <h3>Campañas de marketing <span style={{ marginLeft: 8 }}><ReqBadge codigo="REQ_C_27" /></span></h3>
-          <table>
+          <h3 id="campanias">Campañas de marketing <span style={{ marginLeft: 8 }}><ReqBadge codigo="REQ_C_27" /></span></h3>
+          <div className="table-scroll" role="region" aria-label="Tabla de registros" tabIndex={0}><table>
             <thead><tr><th>Campaña</th><th>Canal</th><th>Presupuesto</th><th>Estado</th></tr></thead>
             <tbody>
               {campanias.map((c) => (
@@ -223,20 +245,20 @@ export default function Gestion() {
               ))}
               {campanias.length === 0 && <tr><td colSpan={4} style={{ color: 'var(--text-2)' }}>Sin campañas aún.</td></tr>}
             </tbody>
-          </table>
+          </table></div>
           {editable && (
             <form onSubmit={crearCampania} style={{ marginTop: 18 }}>
               <div className="row">
-                <div><label>Nombre *</label><input value={campForm.nombre} onChange={(e) => setCampForm({ ...campForm, nombre: e.target.value })} /></div>
-                <div><label>Canal</label><input value={campForm.canal} onChange={(e) => setCampForm({ ...campForm, canal: e.target.value })} placeholder="Redes sociales" /></div>
-                <div><label>Presupuesto</label><input type="number" step="0.01" value={campForm.presupuesto} onChange={(e) => setCampForm({ ...campForm, presupuesto: e.target.value })} /></div>
+                <div><label>Nombre *<input required value={campForm.nombre} onChange={(e) => setCampForm({ ...campForm, nombre: e.target.value })} /></label></div>
+                <div><label>Canal<input value={campForm.canal} onChange={(e) => setCampForm({ ...campForm, canal: e.target.value })} placeholder="Redes sociales" /></label></div>
+                <div><label>Presupuesto<input type="number" step="0.01" value={campForm.presupuesto} onChange={(e) => setCampForm({ ...campForm, presupuesto: e.target.value })} /></label></div>
                 <div>
-                  <label>Estado</label>
+                  <label>Estado
                   <select value={campForm.estado} onChange={(e) => setCampForm({ ...campForm, estado: e.target.value })}>
                     <option value="Planificada">Planificada</option>
                     <option value="Activa">Activa</option>
                     <option value="Finalizada">Finalizada</option>
-                  </select>
+                  </select></label>
                 </div>
               </div>
               <div style={{ marginTop: 14 }}><MotionButton className="btn secundario" type="submit">Agregar campaña</MotionButton></div>
@@ -249,7 +271,7 @@ export default function Gestion() {
       <Reveal delay={0.1}>
         <div className="card">
           <h3>Usuarios y roles <span style={{ marginLeft: 8 }}><ReqBadge codigo="REQ_C_30" /></span></h3>
-          <table>
+          <div className="table-scroll" role="region" aria-label="Tabla de registros" tabIndex={0}><table>
             <thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Estado</th></tr></thead>
             <tbody>
               {usuarios.map((u) => (
@@ -259,7 +281,7 @@ export default function Gestion() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </Reveal>
     </div>

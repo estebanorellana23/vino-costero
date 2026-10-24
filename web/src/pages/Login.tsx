@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../api';
-import { motion, MotionButton } from '../components/Motion';
-import { ReqBadge } from '../components/ReqBadge';
+import { VineyardJourney } from '../components/VineyardJourney';
 import { homeDeRol } from '../roles';
 
 export default function Login() {
@@ -31,16 +30,15 @@ export default function Login() {
   };
 
   return (
-    <div className="login-wrap">
-      <motion.form
+    <div className="login-wrap vineyard-login">
+      <VineyardJourney />
+      <form
         className="login-card"
         onSubmit={entrar}
-        initial={{ opacity: 0, y: 24, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ type: 'spring', bounce: 0, duration: 0.7 }}
       >
-        <h1>Vino Costero</h1>
-        <p className="sub">Sistema de Control de Producción Vitivinícola</p>
+        <p className="journey-eyebrow">Tu espacio de trabajo</p>
+        <h2>Ingresar a Vino Costero</h2>
+        <p className="sub">Entra con tu cuenta para ver los módulos de tu trabajo.</p>
 
         <label htmlFor="usuario">Usuario</label>
         <input id="usuario" autoComplete="username" required maxLength={50} value={usuario} onChange={(e) => setUsuario(e.target.value)} autoFocus />
@@ -51,15 +49,11 @@ export default function Login() {
         {error && <div className="error" role="alert">{error}</div>}
         {typeof notice==='string' && <p role="status">{notice}</p>}
 
-        <MotionButton disabled={ocupado} className="btn primario block" style={{ marginTop: 26 }} type="submit">
+        <button disabled={ocupado} className="btn primario block" style={{ marginTop: 26 }} type="submit">
           {ocupado ? 'Ingresando…' : 'Ingresar'}
-        </MotionButton>
-
-        <div className="req-row" style={{ marginTop: 14 }}>
-          <ReqBadge codigo="REQ_NF_02" />
-          <ReqBadge codigo="REQ_NF_03" />
-        </div>
-      </motion.form>
+        </button>
+        <p className="login-hint">¿No tienes acceso? Solicita tu cuenta al administrador.</p>
+      </form>
     </div>
   );
 }

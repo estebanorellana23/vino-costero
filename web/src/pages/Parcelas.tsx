@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
+import { PageNotice } from '../components/PageNotice';
 import { motion, FadeIn, Reveal, MotionButton, filaVariants } from '../components/Motion';
 import { ReqBadge } from '../components/ReqBadge';
 import { puedeEditarCampo } from '../roles';
@@ -23,13 +24,19 @@ export default function Parcelas() {
   const [form, setForm] = useState<any>(vacio);
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(true);
   const rol = JSON.parse(localStorage.getItem('usuario') || '{}').rol || '';
   const editable = puedeEditarCampo(rol);
 
   const cargar = async () => {
+    setLoading(true);
+    setError('');
+    try {
     const [p, v] = await Promise.all([api.get('/parcelas'), api.get('/variedades')]);
     setParcelas(p.data);
     setVariedades(v.data);
+    } catch { setError('No se pudieron cargar los datos. Comprueba la conexión y pulsa Actualizar datos.'); } finally { setLoading(false); }
   };
 
   useEffect(() => { cargar(); }, []);
@@ -39,6 +46,7 @@ export default function Parcelas() {
   const guardar = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     try {
       if (editandoId) {
         await api.put(`/parcelas/${editandoId}`, form);
@@ -47,6 +55,7 @@ export default function Parcelas() {
       }
       setForm(vacio);
       setEditandoId(null);
+      setSuccess('Parcela guardada.');
       cargar();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Error al guardar');
@@ -63,11 +72,13 @@ export default function Parcelas() {
 
   const eliminar = async (id: number) => {
     if (!confirm('¿Eliminar esta parcela?')) return;
+    setSuccess('');
     try {
       await api.delete(`/parcelas/${id}`);
+      setSuccess('Parcela eliminada.');
       cargar();
     } catch (err: any) {
-      alert(err.response?.data?.error || 'No se pudo eliminar');
+      setError(err.response?.data?.error || 'No se pudo eliminar');
     }
   };
 
@@ -78,7 +89,7 @@ export default function Parcelas() {
       <FadeIn>
         <header className="hero">
           <h1 className="display">Parcelas del viñedo</h1>
-          <p className="lead">Catálogo maestro del módulo Campo</p>
+          <p className="lead">Terrenos, variedades y estado de cada parcela.</p>
           <div className="req-row">
             <ReqBadge codigo="REQ_C_03" />
             <ReqBadge codigo="REQ_C_06" />
@@ -86,49 +97,52 @@ export default function Parcelas() {
           {!editable && <div className="modo-consulta">Modo consulta · solo lectura</div>}
         </header>
       </FadeIn>
+      <PageNotice error={error} onRetry={cargar} />
+      {success && <p className="operation-success" role="status">{success}</p>}
+      {loading && <p className="loading-note" role="status">Cargando registros…</p>}
 
       {editable && (
       <Reveal>
         <div className="card">
-          <h3>
+          <h3 id="registro-parcela">
             {editandoId ? 'Editar parcela' : 'Nueva parcela'}
             <span style={{ marginLeft: 10 }}><ReqBadge codigo="REQ_C_03" /></span>
           </h3>
           <form onSubmit={guardar}>
             <div className="row">
               <div>
-                <label>Código *</label>
-                <input value={form.codigo} onChange={(e) => cambiar('codigo', e.target.value)} placeholder="P-03" />
+                <label>Código *
+                <input required value={form.codigo} onChange={(e) => cambiar('codigo', e.target.value)} placeholder="P-03" /></label>
               </div>
               <div>
-                <label>Nombre</label>
-                <input value={form.nombre} onChange={(e) => cambiar('nombre', e.target.value)} placeholder="Ladera Sur" />
+                <label>Nombre
+                <input value={form.nombre} onChange={(e) => cambiar('nombre', e.target.value)} placeholder="Ladera Sur" /></label>
               </div>
             </div>
             <div className="row">
               <div>
-                <label>Ubicación</label>
-                <input value={form.ubicacion} onChange={(e) => cambiar('ubicacion', e.target.value)} placeholder="Leyda sector 3" />
+                <label>Ubicación
+                <input value={form.ubicacion} onChange={(e) => cambiar('ubicacion', e.target.value)} placeholder="Leyda sector 3" /></label>
               </div>
               <div>
-                <label>Variedad <ReqBadge codigo="REQ_C_06" /></label>
+                <label>Variedad <ReqBadge codigo="REQ_C_06" />
                 <select value={form.id_variedad} onChange={(e) => cambiar('id_variedad', e.target.value)}>
                   <option value="">— Sin asignar —</option>
                   {variedades.map((v) => (
                     <option key={v.id_variedad} value={v.id_variedad}>{v.nombre}</option>
                   ))}
-                </select>
+                </select></label>
               </div>
               <div>
-                <label>Estado</label>
+                <label>Estado
                 <select value={form.estado} onChange={(e) => cambiar('estado', e.target.value)}>
                   <option value="activa">Activa</option>
                   <option value="descanso">Descanso</option>
                   <option value="en_preparacion">En preparación</option>
-                </select>
+                </select></label>
               </div>
             </div>
-            {error && <div className="error">{error}</div>}
+
             <div style={{ marginTop: 22 }}>
               <MotionButton className="btn primario" type="submit">
                 {editandoId ? 'Guardar cambios' : 'Agregar parcela'}
@@ -146,8 +160,8 @@ export default function Parcelas() {
 
       <Reveal delay={0.08}>
         <div className="card">
-          <h3>Parcelas registradas ({parcelas.length})</h3>
-          <table>
+          <h3 id="lista-parcelas">Parcelas registradas ({parcelas.length})</h3>
+          <div className="table-scroll" role="region" aria-label="Tabla de registros" tabIndex={0}><table>
             <thead>
               <tr>
                 <th>Código</th><th>Nombre</th><th>Ubicación</th>
@@ -180,11 +194,11 @@ export default function Parcelas() {
                   </td>
                 </motion.tr>
               ))}
-              {parcelas.length === 0 && (
-                <tr><td colSpan={6} style={{ color: 'var(--text-2)' }}>Aún no hay parcelas. Agregá una arriba.</td></tr>
+              {parcelas.length === 0 && !loading && !error && (
+                <tr><td colSpan={6} style={{ color: 'var(--text-2)' }}>Aún no hay parcelas. {editable ? 'Agrega una con el formulario Nueva parcela.' : 'El equipo de Campo debe registrar las parcelas para que puedas consultarlas.'}</td></tr>
               )}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </Reveal>
     </div>

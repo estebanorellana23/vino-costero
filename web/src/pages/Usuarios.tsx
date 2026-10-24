@@ -33,14 +33,14 @@ export default function Usuarios() {
   };
   return <div><header className="hero"><h1 className="display">Usuarios y accesos</h1><p className="lead">Asigna el rol que necesita cada persona y retira el acceso cuando corresponda.</p></header>
     {error&&<div className="error" role="alert">{error}</div>}{notice&&<p className="field-notice" role="status">{notice}</p>}
-    <section className="card" aria-busy={loading}><h2>Cuentas registradas</h2><p>Cambiar un rol o desactivar una cuenta cierra sus sesiones anteriores. Otro administrador debe modificar tu propio acceso.</p>
+    <section className="card" aria-busy={loading}><h2 id="cuentas">Cuentas registradas</h2><p>Cambiar un rol o desactivar una cuenta cierra sus sesiones anteriores. Otro administrador debe modificar tu propio acceso.</p>
       {loading?<p role="status">Cargando usuarios…</p>:<div className="field-table"><table><thead><tr><th>Persona</th><th>Usuario</th><th>Rol</th><th>Estado</th><th>Acción</th></tr></thead><tbody>{users.map(user=><tr key={user.id_usuario}>
         <td>{user.nombre}</td><td>{user.usuario}</td><td><select aria-label={`Rol de ${user.nombre}`} disabled={busy||user.id_usuario===current} value={drafts[user.id_usuario]?.rol||user.rol} onChange={e=>setDrafts({...drafts,[user.id_usuario]:{...drafts[user.id_usuario],rol:e.target.value}})}>{roles.map(rol=><option key={rol}>{rol}</option>)}</select></td>
         <td><select aria-label={`Estado de ${user.nombre}`} disabled={busy||user.id_usuario===current} value={drafts[user.id_usuario]?.estado||user.estado} onChange={e=>setDrafts({...drafts,[user.id_usuario]:{...drafts[user.id_usuario],estado:e.target.value}})}><option value="activo">Activo</option><option value="inactivo">Inactivo</option></select></td>
         <td><button className="btn secundario" type="button" disabled={busy||user.id_usuario===current} onClick={()=>update(user)}>Guardar acceso</button></td>
       </tr>)}</tbody></table></div>}
     </section>
-    <section className="card suave"><h2>Crear usuario</h2><form onSubmit={create}><div className="field-form">
+    <section className="card suave"><h2 id="crear-usuario">Crear usuario</h2><form onSubmit={create}><div className="field-form">
       <label htmlFor="user-name">Nombre<input id="user-name" required maxLength={80} value={form.nombre} onChange={e=>setForm({...form,nombre:e.target.value})}/></label>
       <label htmlFor="user-login">Usuario<input id="user-login" autoComplete="off" required minLength={3} maxLength={50} pattern={'[a-z0-9._\\-]+'} value={form.usuario} onChange={e=>setForm({...form,usuario:e.target.value})}/><span>Minúsculas, números, punto, guion o guion bajo.</span></label>
       <label htmlFor="user-role">Rol<select id="user-role" value={form.rol} onChange={e=>setForm({...form,rol:e.target.value})}>{roles.map(rol=><option key={rol}>{rol}</option>)}</select></label>

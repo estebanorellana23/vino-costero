@@ -32,17 +32,17 @@ export default function Ayuda() {
       </FadeIn>
 
       <section className="card">
-        <h2>El recorrido en 7 pasos</h2>
+        <h2 id="proceso-vino">El recorrido en 7 pasos</h2>
         <ol className="ayuda-pasos">
           {PASOS.map((p) => (
             <li key={p.n}><b>{p.titulo}.</b> {p.texto}</li>
           ))}
         </ol>
-        <p className="ayuda-nota">En las pantallas, las palabras con subrayado punteado explican su significado al pasar el mouse.</p>
+        <p className="ayuda-nota">En las pantallas, las palabras con subrayado punteado explican su significado al pasar el mouse, enfocarlas con Tab o tocarlas. Las etiquetas REQ conservan la referencia a cada requisito.</p>
       </section>
 
       <section className="card">
-        <h2>Quién hace qué</h2>
+        <h2 id="responsabilidades">Quién hace qué</h2>
         <div className="field-table">
           <table>
             <thead><tr><th>Rol</th><th>Qué hace</th><th>Módulo</th></tr></thead>
@@ -51,6 +51,7 @@ export default function Ayuda() {
         </div>
       </section>
 
+      <div id="glosario" />
       {grupos.map((g) => (
         <section className="card" key={g}>
           <h2>Glosario · {g}</h2>
